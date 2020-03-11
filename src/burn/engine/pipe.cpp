@@ -474,6 +474,11 @@ extern "C" HRESULT PipeWaitForChildConnect(
                     hr = S_OK;
                     break;
                 }
+                else if (ERROR_NO_DATA == er)
+                {
+                    ::DisconnectNamedPipe(hPipe);
+                    hr = HRESULT_FROM_WIN32(er);
+                }
                 else if (ERROR_PIPE_LISTENING == er)
                 {
                     if (cRetry < PIPE_RETRY_FOR_CONNECTION)
@@ -495,7 +500,7 @@ extern "C" HRESULT PipeWaitForChildConnect(
                     break;
                 }
             }
-        } while (HRESULT_FROM_WIN32(ERROR_PIPE_LISTENING) == hr);
+        } while (HRESULT_FROM_WIN32(ERROR_PIPE_LISTENING) == hr || HRESULT_FROM_WIN32(ERROR_NO_DATA) == hr);
         ExitOnRootFailure(hr, "Failed to wait for child to connect to pipe.");
 
         // Put the pipe back in blocking mode.
